@@ -11,7 +11,7 @@ from consts import NEGATING_PREFIX, EMBEDDING_FILE
 
 class WordDB:
     WORD_COLLECTION = 'Words'
-    DB_PATH = './db'
+    DB_PATH = '../db'
     BATCH_SIZE = 8192
     LOAD_N_BATCHES = 2
 

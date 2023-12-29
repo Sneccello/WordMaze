@@ -1,13 +1,12 @@
-#ovverride default sqlite3 version for streamlit deployment
-import pysqlite3
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-
 import wget
 import zipfile
 import logging
 import os.path
-import subprocess
+
+#ovverride default sqlite3 version for streamlit deployment
+import sys
+import pysqlite3
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 import matplotlib
 import streamlit as st
@@ -45,7 +44,7 @@ def setup():
                         datefmt='%Y-%m-%d %H:%M:%S'
                         )
     st.set_page_config(layout="wide")
-    st.title('WordMaze Playground')
+    st.title('WordMaze Playground :dolphin:')
     if not os.path.exists(EMBEDDING_FILE):
         download_embeddings()
 

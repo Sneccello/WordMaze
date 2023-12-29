@@ -27,9 +27,11 @@ def _build_header(state: WordMazeState, db: WordDB, notification_container):
     start_word_container, progress_bar_container, goal_word_container = st.columns([3, 5, 3])
 
     with start_word_container:
-        st.markdown(f"<span style='color:lightblue; border: 2px solid lightblue; padding: 5px;border-radius: 10px;'>"
-                    f"**Start: {state.start}**"
-                    f"</span>", unsafe_allow_html=True)
+        _, center, _ = st.columns([1, 1, 1])
+        with center:
+            st.markdown(f"<span style='color:lightblue; border: 2px solid lightblue; padding: 5px;border-radius: 10px;'>"
+                        f"**Start: {state.start}**"
+                        f"</span>", unsafe_allow_html=True)
 
         set_start_area_container, set_start_button_container = st.columns([2, 1])
         with set_start_area_container:
@@ -52,9 +54,11 @@ def _build_header(state: WordMazeState, db: WordDB, notification_container):
                     st.error(f'{set_start_text} is not in the database')
 
     with goal_word_container:
-        st.markdown(f"<span style='color:lightblue; border: 2px solid lightblue; padding: 5px;border-radius: 10px;'>"
-                    f"**Goal: {state.goal}**"
-                    f"</span>", unsafe_allow_html=True)
+        _, center, _ = st.columns([1, 1, 1])
+        with center:
+            st.markdown(f"<span style='color:lightblue; border: 2px solid lightblue; padding: 5px;border-radius: 10px;'>"
+                        f"**Goal: {state.goal}**"
+                        f"</span>", unsafe_allow_html=True)
         set_goal_area_container, set_goal_button_container = st.columns([2, 1])
         with set_goal_area_container:
             set_goal_text = st.text_input(label='Set', label_visibility='collapsed', key='text_goal')
@@ -102,11 +106,11 @@ def _handle_input(state: WordMazeState, db: WordDB, text_input: str):
 
 def _build_guess_container(state: WordMazeState, db: WordDB, guess_container):
     with guess_container:
-        st.header('Guess Next')
+        st.header('Build a Vector Combination :bricks:')
         with st.form("input_word_form", clear_on_submit=True, border=True):
             text_input = st.text_input("Next word to add... (use '-' to negate. e.g.: '-man' for opposite vector of man)")
 
-            submit_button_container, _, new_game_container = st.columns([2, 1, 2])
+            _, submit_button_container, new_game_container, _ = st.columns([1,1,1,1])
 
             with submit_button_container:
                 submit_button = st.form_submit_button("Submit Word")
@@ -118,6 +122,8 @@ def _build_guess_container(state: WordMazeState, db: WordDB, guess_container):
             if submit_button:
                 _handle_input(state, db, text_input)
 
+            st.markdown("<b><span style='color:rgb(164, 98, 191);font-size: 1.2em;'>Current Combination :scroll: :"
+                        "</span></b>", unsafe_allow_html=True)
             for word in state.words:
                 color = 'lightcoral' if is_negative_word(word) else 'lightgreen'
                 st.markdown(f"<span style='color:{color}'>**{word}**</span>", unsafe_allow_html=True)
@@ -125,26 +131,30 @@ def _build_guess_container(state: WordMazeState, db: WordDB, guess_container):
 
 def _build_rank_container(state: WordMazeState, db: WordDB, rank_container, curr_vec_sum: np.ndarray):
     with rank_container:
-        st.header('Current neighbours')
+        st.markdown("<b><span style='color:rgb(220,182,210);font-size: 2em;'>Current Vector Neighbours :flashlight:"
+                    "</span></b>", unsafe_allow_html=True)
         query_top_n = 5000
         closests = db.collection.query(query_embeddings=[curr_vec_sum.tolist()], n_results=query_top_n)
         try:
 
             for idx, close in enumerate(closests['ids'][0][:5]):
-                st.write(f'{idx + 1}: {close}')
+                st.markdown(f"<span style='color:rgb(220,182,210)'>{idx + 1}: {close}</span>", unsafe_allow_html=True)
 
             goal_rank = closests['ids'][0].index(state.goal)
             last_digit = int(str(goal_rank)[-1])
             suffix = ['st', 'nd', 'rd'][last_digit] if 0 <= last_digit < 3 else 'th'
             st.markdown(
                 f"<span style='color:rgb(220,182,210)'>"
-                f"**'{state.goal}' is currently the <u>{goal_rank + 1}{suffix}</u> "
-                f"closest embedding to your combined guess**"
+                f"**'{state.goal}' is currently the <u><span style='font-size: 1.2em;'>{goal_rank + 1}{suffix}</span></u>"
+                f" closest embedding to your combined guess**. (see projections below :arrow_down:)"
                 f"</span>",
                 unsafe_allow_html=True)
 
         except ValueError:
-            st.write(f'{state.goal} is not among the closest {query_top_n} embeddings')
+            st.markdown(
+                f'{state.goal} is not among the closest <span style="font-size: 1.2em;">{query_top_n}</span>'
+                f'embeddings',unsafe_allow_html=True
+            )
             goal_rank = db.get_size()
 
     return goal_rank
@@ -170,48 +180,56 @@ def _fill_progress_bar(state: WordMazeState, db: WordDB, progress_bar_container,
 
 
 def _plot_embeddings(state: WordMazeState, db: WordDB, curr_vec_sum: np.ndarray):
-    with st.container(border=True):
-        reducer = PCA()
 
-        embeds = db.collection.get(
-            ids=state.words + [state.goal],
-            include=['embeddings']
-        )
-        scaler = StandardScaler()
+    _, center, _ = st.columns([1,4,1])
+    with center:
+        with st.container(border=True):
+            reducer = PCA()
 
-        scaled_embeddings = scaler.fit_transform(embeds['embeddings'] + [curr_vec_sum])
-        reduced_embeds = reducer.fit_transform(scaled_embeddings)
+            embeds = db.collection.get(
+                ids=state.words + [state.goal],
+                include=['embeddings']
+            )
+            scaler = StandardScaler()
 
-        df = pd.DataFrame({
-            'Reduced Dimension 1': reduced_embeds[:, 0],
-            'Reduced Dimension 2': reduced_embeds[:, 1],
-            'Labels': embeds['ids'] + ['Current Position']
-        })
+            scaled_embeddings = scaler.fit_transform(embeds['embeddings'] + [curr_vec_sum])
+            reduced_embeds = reducer.fit_transform(scaled_embeddings)
 
-        fig = px.scatter(
-            df,
-            'Reduced Dimension 1',
-            'Reduced Dimension 2',
-            color='Labels',
-            hover_data={'Labels': True},
-            title='Visualization of Embeddings Projected to 2D (Interactive)'
-        )
+            df = pd.DataFrame({
+                'Reduced Dimension 1': reduced_embeds[:, 0],
+                'Reduced Dimension 2': reduced_embeds[:, 1],
+                'Labels': embeds['ids'] + ['Current Position']
+            })
 
-        fig.update_layout(xaxis_title="Reduced Dimension 1", yaxis_title="Reduced Dimension 2")
+            fig = px.scatter(
+                df,
+                'Reduced Dimension 1',
+                'Reduced Dimension 2',
+                color='Labels',
+                hover_data={'Labels': True},
+                title='Visualization of Embeddings Projected to 2D (Interactive)'
+            )
 
-        st.plotly_chart(fig)
+            fig.update_layout(xaxis_title="Reduced Dimension 1", yaxis_title="Reduced Dimension 2")
+
+            st.plotly_chart(fig)
 
 
 def _build_info_container(info_container):
     with info_container:
-        st.subheader('About')
-        text = \
-            "Large Language Models are trained on huge chunks text and learn useful vector representations, embeddings, for words and" \
-            " expressions. " \
-            "These vector representations often have remarkable linear properties, making it possible to add and substract ~meanings. " \
-            "One classic example is\n\n$$\small Queen = King - Man + Woman$$\n\nThat is, if you take the learnt King vector, subtract Man and add Woman," \
-            " the resulting vector will be close to Queen. This is a small tool for exploration of similar examples. Have fun!"
-        st.markdown(text)
+        st.markdown("<b><span style='color:rgb(240, 124, 81);font-size: 2em;'>About :information_source:"
+                    "</span></b>", unsafe_allow_html=True)
+        light_violet ='rgb(247, 142, 104)'
+        text = f'<span style="color: {light_violet}; font-weight: bold;"> ' \
+               "Large Language Models are trained on huge chunks text and learn useful vector representations, " \
+               "embeddings, for words and expressions. These vector representations often have remarkable linear " \
+               "properties, making it possible to add and substract ~meanings. One classic example is </span>" \
+               "\n\n$$\small Queen = King - Man + Woman$$\n\n" \
+               f' <span style="color: {light_violet}; font-weight: bold;"> ' \
+               "That is, if you take the learnt King vector, subtract Man and add Woman," \
+               " the resulting vector will be close to Queen. This is a small tool for exploration of " \
+               "similar examples. Have fun! </span>"
+        st.markdown(text, unsafe_allow_html=True)
 
 
 def build_page(state: WordMazeState, db: WordDB):
