@@ -1,3 +1,10 @@
+#ovverride default sqlite3 version for streamlit deployment
+import pysqlite3
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+import wget
+import zipfile
 import logging
 import os.path
 import subprocess
@@ -26,10 +33,11 @@ def get_state() -> WordMazeState:
 def download_embeddings():
     with st.spinner(text="Downloading embeddings...(may take some minutes)", ):
         logging.info('Downloading embeddings...')
-        subprocess.call(["wget", f"http://nlp.stanford.edu/data/{EMBEDDING_FILE.replace('.txt', '.zip')}"])
+        wget.download(f"http://nlp.stanford.edu/data/{EMBEDDING_FILE.replace('.txt', '.zip')}")
     with st.spinner(text="Unzipping embeddings...", ):
         logging.info('Unzipping embeddings...')
-        subprocess.call(["unzip", f"{EMBEDDING_FILE.replace('.txt', '.zip')}"])
+        with zipfile.ZipFile(f"{EMBEDDING_FILE.replace('.txt', '.zip')}", 'r') as zip_ref:
+            zip_ref.extractall()
 
 def setup():
     logging.basicConfig(level=logging.INFO,
