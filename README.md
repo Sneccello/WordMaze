@@ -1,4 +1,4 @@
-# WordMaze: A Vector Embeddings Playground
+# WordMaze: A Vector Embeddings Playground 🐬
 ## About
 A simple app to visualize and enable playing around with word embeddings.
 Word embeddings are vectors learned by language models to represent words and expressions.
