@@ -1,0 +1,2 @@
+NEGATING_PREFIX = '-'
+EMBEDDING_FILE = 'glove.42B.300d.txt'
