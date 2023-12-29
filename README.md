@@ -8,7 +8,7 @@ a vector close to Japan (France-Paris+Tokyo≈Japan).
 More details can be read here in these papers: [Word2Vec](https://arxiv.org/abs/1301.3781) , [GloVe](https://nlp.stanford.edu/pubs/glove.pdf)
 
 This app makes it easy to play around with embeddings and see what other words you can build from word vectors.
-
+<br><br>
 <img width="1319" alt="Screenshot" src="https://github.com/Sneccello/WordMaze/assets/78796219/73defe10-8308-4c27-a64e-17c289e0bd7e">
 
 You can also see relationships between vectors projected down to 2D:
