@@ -41,15 +41,18 @@ def _build_header(state: WordMazeState, db: WordDB, notification_container):
             set_button = st.button('Set', key='set_start')
             if set_button:
                 set_start_text = set_start_text.lower()
-                if set_start_text != '' and db.is_valid_word(set_start_text):
+                set_start_text = clean_input(set_start_text)
+                if set_start_text != '' and \
+                        db.is_valid_word(set_start_text) and \
+                        get_positive_form(set_start_text) != get_positive_form(state.goal):
                     state.set_start(set_start_text)
                     st.rerun()
                 else:
                     set_start_error = True
         with notification_container:
             if set_start_error:
-                if set_start_text == '':
-                    st.error('Cannot set empty text for start')
+                if set_start_text == '' or get_positive_form(set_start_text) == get_positive_form(state.goal):
+                    st.error('Cannot set empty text for start or the same word as the goal')
                 else:
                     st.error(f'{set_start_text} is not in the database')
 
@@ -67,7 +70,10 @@ def _build_header(state: WordMazeState, db: WordDB, notification_container):
             set_goal_text = set_goal_text.lower()
             set_button = st.button('Set', key='set_goal')
             if set_button:
-                if set_goal_text != '' and db.is_valid_word(set_goal_text):
+                set_goal_text = clean_input(set_goal_text)
+                if set_goal_text != '' and \
+                        db.is_valid_word(set_goal_text) and \
+                        get_positive_form(set_goal_text) != get_positive_form(state.start):
                     state.set_goal(set_goal_text)
                     st.rerun()
                 else:
@@ -75,8 +81,8 @@ def _build_header(state: WordMazeState, db: WordDB, notification_container):
 
         with notification_container:
             if set_goal_error:
-                if set_goal_text == '':
-                    st.error('Cannot set empty text for goal')
+                if set_goal_text == '' or get_positive_form(set_goal_text) == get_positive_form(state.start):
+                    st.error('Cannot set empty text for goal or the same word as the goal')
                 else:
                     st.error(f'{set_goal_text} is not in the database')
 
