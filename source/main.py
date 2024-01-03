@@ -24,10 +24,11 @@ def get_db() -> WordDB:
     return WordDB()
 
 
-@st.cache_resource
 def get_state() -> WordMazeState:
-    return WordMazeState()
+    if 'WordMazeState' not in st.session_state:
+        st.session_state['WordMazeState'] = WordMazeState()
 
+    return st.session_state['WordMazeState']
 
 def download_embeddings():
     with st.spinner(text="Downloading embeddings...(may take some minutes)", ):
