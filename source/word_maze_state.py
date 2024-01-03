@@ -1,18 +1,12 @@
-import logging
-
-
 class WordMazeState:
 
-    def __init__(self, start: str = 'france', goal: str = 'japan'):
-        self.logger = logging.getLogger(self.__class__.__name__)
-
-        self.start = start
-        self.goal = goal
-        self.words = [start]
+    def __init__(self):
+        self.start = 'dog'
+        self.goal = 'whale'
+        self.words = [self.start, '-cat', 'huge', 'dolphin']
 
     def add_word(self, word: str):
         self.words.append(word)
-
 
     def clear(self):
         self.words = [self.start]
