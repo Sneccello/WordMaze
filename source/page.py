@@ -27,8 +27,8 @@ def _build_header(state: WordMazeState, db: WordDB, notification_container):
     start_word_container, progress_bar_container, goal_word_container = st.columns([3, 5, 3])
 
     with start_word_container:
-        _, center, _ = st.columns([1, 1, 1])
-        with center:
+        _, right = st.columns([2, 2])
+        with right:
             st.markdown(f"<span style='color:lightblue; border: 2px solid lightblue; padding: 5px;border-radius: 10px;'>"
                         f"**Start: {state.start}**"
                         f"</span>", unsafe_allow_html=True)
@@ -54,8 +54,8 @@ def _build_header(state: WordMazeState, db: WordDB, notification_container):
                     st.error(f'{set_start_text} is not in the database')
 
     with goal_word_container:
-        _, center, _ = st.columns([1, 1, 1])
-        with center:
+        left, _ = st.columns([2, 2])
+        with left:
             st.markdown(f"<span style='color:lightblue; border: 2px solid lightblue; padding: 5px;border-radius: 10px;'>"
                         f"**Goal: {state.goal}**"
                         f"</span>", unsafe_allow_html=True)
@@ -153,7 +153,7 @@ def _build_rank_container(state: WordMazeState, db: WordDB, rank_container, curr
         except ValueError:
             st.markdown(
                 f'{state.goal} is not among the closest <span style="font-size: 1.2em;">{query_top_n}</span>'
-                f'embeddings',unsafe_allow_html=True
+                f' embeddings',unsafe_allow_html=True
             )
             goal_rank = db.get_size()
 
