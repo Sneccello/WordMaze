@@ -13,7 +13,7 @@ class WordDB:
     WORD_COLLECTION = 'Words'
     DB_PATH = '../db'
     BATCH_SIZE = 8192
-    LOAD_N_BATCHES = 2
+    LOAD_N_BATCHES = 4
 
     def __init__(self):
 
@@ -38,7 +38,7 @@ class WordDB:
             return
 
         self.logger.info(
-            f'Resetting inconsistent DB: there is {self.collection.count()} words in DB but there should be {goal_word_count}.')
+            f'Resetting inconsistent DB: there are {self.collection.count()} words in DB but there should be {goal_word_count}.')
         self.client.delete_collection(self.WORD_COLLECTION)
         self.collection = self.client.create_collection(name=self.WORD_COLLECTION)
 
@@ -73,7 +73,6 @@ class WordDB:
             embed = res['embeddings'][idx]
             word = res['ids'][idx]
             mapping[word] = np.array(embed)
-
         return [mapping[word] for word in words]
 
     def _read_lines_in_batches(self):
@@ -89,7 +88,7 @@ class WordDB:
                 yield batch
 
     def _extract_word_embeddings(self, line: str):
-        split_line = line.split()
+        split_line = line.split(' ')
         word = split_line[0]
         embedding = np.array(split_line[1:], dtype=np.float64)
 
@@ -114,6 +113,7 @@ class WordDB:
                 embeddings=embeddings,
                 ids=words
             )
+            inserted_words += len(words)
             self.logger.info(
                 f'Inserted {len(embeddings)} words into DB. Currently at: {inserted_words} / {total_words}')
             embeddings = []

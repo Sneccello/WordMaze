@@ -19,13 +19,15 @@ France-Paris and Japan-Tokyo have very similar relationships in the vector space
 1. clone the repo
 
     ```git clone https://github.com/Sneccello/WordMaze.git```
+    
+   ```cd WordMaze```
 2. setup environment
 
     ```conda create --name word_maze python=3.11```
 
     ```conda activate word_maze```
 
-    ```pip install -r requirements.txt```
+    ```pip install -r requirements_local.txt``` 
 
 3. Run the streamlit app (it may take some time to install the [GloVe](https://github.com/stanfordnlp/GloVe) 
 vector embeddings for the first time)

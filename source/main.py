@@ -1,4 +1,4 @@
-import wget
+import requests
 import zipfile
 import logging
 import os.path
@@ -30,14 +30,40 @@ def get_state() -> WordMazeState:
 
     return st.session_state['WordMazeState']
 
-def download_embeddings():
-    with st.spinner(text="Downloading embeddings...(may take some minutes)", ):
-        logging.info('Downloading embeddings...')
-        wget.download(f"http://nlp.stanford.edu/data/{EMBEDDING_FILE.replace('.txt', '.zip')}")
+def extract_embeddings():
+    zipfilename = EMBEDDING_FILE.replace('.txt', '.zip')
     with st.spinner(text="Unzipping embeddings...", ):
         logging.info('Unzipping embeddings...')
-        with zipfile.ZipFile(f"{EMBEDDING_FILE.replace('.txt', '.zip')}", 'r') as zip_ref:
-            zip_ref.extractall()
+        with zipfile.ZipFile(zipfilename, 'r') as zip_ref:
+            internal_name = zip_ref.namelist()[0]
+            with zip_ref.open(internal_name) as source, open(EMBEDDING_FILE, "wb") as target:
+                target.write(source.read())
+
+
+def download_embeddings():
+    url = f"http://nlp.stanford.edu/data/{EMBEDDING_FILE.replace('.txt', '.zip')}"
+    local_filename = EMBEDDING_FILE.replace('.txt', '.zip')
+
+    with st.spinner("Downloading embeddings..."):
+
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+
+        response = requests.get(url, stream=True)
+        total_size = int(response.headers.get('content-length', 0))
+
+        downloaded_size = 0
+        with open(local_filename, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+                    downloaded_size += len(chunk)
+
+                    progress = downloaded_size / total_size
+                    progress_bar.progress(progress)
+                    status_text.text(f"Downloaded: {downloaded_size // 10 ** 6}MB / {total_size // 10 ** 6}MB")
+        progress_bar.empty()
+
 
 def setup():
     logging.basicConfig(level=logging.INFO,
@@ -46,8 +72,10 @@ def setup():
                         )
     st.set_page_config(layout="wide")
     st.title('WordMaze Playground :dolphin:')
-    if not os.path.exists(EMBEDDING_FILE):
+    if not os.path.exists(EMBEDDING_FILE.replace('.txt', '.zip')):
         download_embeddings()
+    if not os.path.exists(EMBEDDING_FILE):
+        extract_embeddings()
 
 
 def main():
